@@ -12,6 +12,7 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <iostream>
 
 namespace leking {
     struct SimplePushConstantData {
@@ -62,22 +63,58 @@ namespace leking {
                 pipelineConfig);
     }
 
+
     void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<LekGameObject>& gameObjects) {
         //更新游戏对象
-        static float speedx = 0.0f;
-        static float addSpeedx = 0;
-        static float speedy = 4.0f;
-        static float addSpeedy = 0;
-        int i =0;
+        static bool start = false;
+        static glm::vec2 targetPos;
+        static glm::vec2 targetPos1;
+        static glm::vec2 v;
+        static glm::vec2 v1;
+        static glm::vec2 a;
+        static glm::vec2 a1;
+        if(!start) {
+            start = true;
+            targetPos = {0.3f, 0.3f};
+            targetPos1 = {-0.2f, -0.3f};
+            v = {1.f,0.0f};
+            v1 = {-1.f,0.0f};
+            a = {0.0f,0.0f};
+            a1 = {0.0f,0.0f};
+        }
         for(auto&obj : gameObjects) {
-            i+=1;
-            obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.00003f*i, glm::two_pi<float>());
-            obj.transform2d.translation.x += speedx*0.0001f;
-            obj.transform2d.translation.y += speedy*0.0001f;
-            speedx += addSpeedx*0.0001f;
-            addSpeedx = -obj.transform2d.translation.x;
-            speedy += addSpeedy*0.0001f;
-            addSpeedy = -obj.transform2d.translation.y;
+            if(obj.test == 1) {
+                obj.transform2d.translation  = targetPos;
+                continue;
+            }
+            if(obj.test == 2) {
+                obj.transform2d.translation  = targetPos1;
+                continue;
+            }
+            glm::vec2 d =  targetPos - obj.transform2d.translation;
+            float dlp =  glm::dot(d,d);
+            glm::vec2 d1 =  targetPos1 - obj.transform2d.translation;
+            float d1lp =  glm::dot(d1,d1);
+            glm::vec2 dan = {d.x/dlp,d.y/dlp};
+            glm::vec2 da1n = {d1.x/d1lp,d1.y/d1lp};
+            glm::vec2 da = normalize(dan+da1n);
+            obj.transform2d.rotation = glm::acos(da.x) + glm::half_pi<float>();
+
+            targetPos += v*0.00001f;
+            targetPos1 += v1*0.00001f;
+
+            glm::vec2 r = targetPos1 - targetPos;
+            float rd = glm::dot(r,r);
+            a = {r.x/rd,r.y/rd};
+            glm::vec2 r1 = targetPos - targetPos1;
+            float rd1 = glm::dot(r,r);
+            a1 = {r1.x/rd1,r1.y/rd1};
+
+            v = {v.x+a.x*0.00001f,v.y+a.y*0.00001f};
+            v1 = {v1.x+a1.x*0.00001f,v1.y+a1.y*0.00001f};
+
+            std::cout<< a.x<<endl;
+            std::cout<< v.x<<endl;
         }
 
         //渲染游戏对象

@@ -53,14 +53,26 @@ namespace leking {
         };
         auto lekModel = std::make_shared<LekModel>(lekDevice, vertices);
 
-        for(int i = 0;i<20;i++) {
+        for(int i = 0;i<40;i++) {
+            for (int j = 0; j < 40; ++j) {
+                auto triangle = LekGameObject::createGameObject();
+                triangle.model = lekModel;
+                triangle.color = {1.0f, 1.0f, 1.0f};
+                triangle.transform2d.translation.x = -1 + 0.05f*i;
+                triangle.transform2d.translation.y = -1 + 0.05*j;
+                triangle.transform2d.scale = {0.01f, 0.05f};
+
+                gameObjects.push_back(std::move(triangle));
+            }
+        }
+        for(int i = 1;i<3;i++) {
             auto triangle = LekGameObject::createGameObject();
             triangle.model = lekModel;
-            triangle.color = {(float)(rand()%10)/10, (float)(rand()%10)/10, (float)(rand()%10)/10};
-            triangle.transform2d.translation.x = 0.5f;
-            triangle.transform2d.translation.y = 0.5f;
-            triangle.transform2d.scale = {0.05f*i, 0.05f*i};
-            triangle.transform2d.rotation = 0.125f*i * glm::two_pi<float>();
+            triangle.color = {1.0f, i-1, 1.0f};
+            triangle.transform2d.translation.x = 0;
+            triangle.transform2d.translation.y = 0;
+            triangle.transform2d.scale = {0.1f, 0.1f};
+            triangle.test = i;
 
             gameObjects.push_back(std::move(triangle));
         }

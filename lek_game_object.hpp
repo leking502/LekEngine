@@ -31,6 +31,7 @@ namespace leking {
     class LekGameObject {
     public:
         using id_t = unsigned int;
+        int test{0};
 
         static LekGameObject createGameObject() {
             static  id_t currentId = 0;
