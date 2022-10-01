@@ -22,6 +22,13 @@ namespace leking {
     public:
 
         struct Vertex {
+            vec3 position;
+            vec3 color;
+
+            static vector<VkVertexInputBindingDescription> getBindingDescriptions();
+            static vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+        };
+        struct Vertex2D {
             vec2 position;
             vec3 color;
 
@@ -29,7 +36,12 @@ namespace leking {
             static vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
         };
 
-        LekModel(LekDevice &device, const vector<Vertex> &vertices);
+        struct Builder {
+            std::vector<Vertex> vertices{};
+            std::vector<uint32_t > indices{};
+        };
+
+        LekModel(LekDevice &device, const LekModel::Builder &builder);
         ~LekModel();
 
         LekModel(const LekModel &) = delete;
@@ -40,11 +52,18 @@ namespace leking {
 
     private:
         void createVertexBuffers(const vector<Vertex> &vertices);
+        void createIndexBuffers(const vector<uint32_t> &indices);
 
         LekDevice& lekDevice;
+
         VkBuffer  vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
         uint32_t vertexCount;
+
+        bool hasIndexBuffer = false;
+        VkBuffer  indexBuffer;
+        VkDeviceMemory indexBufferMemory;
+        uint32_t indexCount;
     };
 
 } // leking

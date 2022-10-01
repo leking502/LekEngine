@@ -5,6 +5,7 @@
 #ifndef LEKENGINE_SIMPLE_RENDER_SYSTEM_HPP
 #define LEKENGINE_SIMPLE_RENDER_SYSTEM_HPP
 
+#include "lek_camera.hpp"
 #include "lek_pipeline.hpp"
 #include "lek_game_object.hpp"
 #include "lek_device.hpp"
@@ -23,7 +24,10 @@ namespace leking {
         SimpleRenderSystem(const SimpleRenderSystem &) = delete;
         SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-        void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<LekGameObject>& gameObjects);
+        void renderGameObjects(
+                VkCommandBuffer commandBuffer,
+                std::vector<LekGameObject>& gameObjects,
+                const LekCamera& camera);
 
     private:
         void createPipelineLayout();

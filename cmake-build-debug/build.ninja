@@ -109,6 +109,24 @@ build CMakeFiles/LekEngine.dir/simple_render_system.cpp.o: CXX_COMPILER__LekEngi
   OBJECT_DIR = CMakeFiles/LekEngine.dir
   OBJECT_FILE_DIR = CMakeFiles/LekEngine.dir
 
+build CMakeFiles/LekEngine.dir/lek_camera.cpp.o: CXX_COMPILER__LekEngine_Debug /home/leking/CLionProjects/LekEngine/lek_camera.cpp || cmake_object_order_depends_target_LekEngine
+  DEP_FILE = CMakeFiles/LekEngine.dir/lek_camera.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  OBJECT_DIR = CMakeFiles/LekEngine.dir
+  OBJECT_FILE_DIR = CMakeFiles/LekEngine.dir
+
+build CMakeFiles/LekEngine.dir/keyboard_movement_controller.cpp.o: CXX_COMPILER__LekEngine_Debug /home/leking/CLionProjects/LekEngine/keyboard_movement_controller.cpp || cmake_object_order_depends_target_LekEngine
+  DEP_FILE = CMakeFiles/LekEngine.dir/keyboard_movement_controller.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  OBJECT_DIR = CMakeFiles/LekEngine.dir
+  OBJECT_FILE_DIR = CMakeFiles/LekEngine.dir
+
+build CMakeFiles/LekEngine.dir/maze_game.cpp.o: CXX_COMPILER__LekEngine_Debug /home/leking/CLionProjects/LekEngine/maze_game.cpp || cmake_object_order_depends_target_LekEngine
+  DEP_FILE = CMakeFiles/LekEngine.dir/maze_game.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  OBJECT_DIR = CMakeFiles/LekEngine.dir
+  OBJECT_FILE_DIR = CMakeFiles/LekEngine.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target LekEngine
@@ -117,7 +135,7 @@ build CMakeFiles/LekEngine.dir/simple_render_system.cpp.o: CXX_COMPILER__LekEngi
 #############################################
 # Link the executable LekEngine
 
-build LekEngine: CXX_EXECUTABLE_LINKER__LekEngine_Debug CMakeFiles/LekEngine.dir/main.cpp.o CMakeFiles/LekEngine.dir/lek_window.cpp.o CMakeFiles/LekEngine.dir/lek_app.cpp.o CMakeFiles/LekEngine.dir/lek_pipeline.cpp.o CMakeFiles/LekEngine.dir/lek_device.cpp.o CMakeFiles/LekEngine.dir/lek_swap_chain.cpp.o CMakeFiles/LekEngine.dir/lek_model.cpp.o CMakeFiles/LekEngine.dir/lek_game_object.cpp.o CMakeFiles/LekEngine.dir/lek_renderer.cpp.o CMakeFiles/LekEngine.dir/simple_render_system.cpp.o
+build LekEngine: CXX_EXECUTABLE_LINKER__LekEngine_Debug CMakeFiles/LekEngine.dir/main.cpp.o CMakeFiles/LekEngine.dir/lek_window.cpp.o CMakeFiles/LekEngine.dir/lek_app.cpp.o CMakeFiles/LekEngine.dir/lek_pipeline.cpp.o CMakeFiles/LekEngine.dir/lek_device.cpp.o CMakeFiles/LekEngine.dir/lek_swap_chain.cpp.o CMakeFiles/LekEngine.dir/lek_model.cpp.o CMakeFiles/LekEngine.dir/lek_game_object.cpp.o CMakeFiles/LekEngine.dir/lek_renderer.cpp.o CMakeFiles/LekEngine.dir/simple_render_system.cpp.o CMakeFiles/LekEngine.dir/lek_camera.cpp.o CMakeFiles/LekEngine.dir/keyboard_movement_controller.cpp.o CMakeFiles/LekEngine.dir/maze_game.cpp.o
   FLAGS = -g
   LINK_LIBRARIES = -Wl,-rpath,/usr/local/lib  -lvulkan  -lglfw  -lrt  -lm  -ldl
   LINK_PATH = -L/usr/local/lib

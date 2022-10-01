@@ -26,6 +26,7 @@ namespace leking {
         LekRenderer& operator=(const LekRenderer&) = delete;
 
         VkRenderPass getSwapChainRenderPass() const {return lekSwapChain->getRenderPass();}
+        float getAspectRatio() const { return lekSwapChain->extentAspectRatio();}
         bool isFrameInProgress() const {return  isFrameStarted;}
 
         VkCommandBuffer getCurrentCommandBuffer() const {

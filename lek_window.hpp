@@ -23,6 +23,7 @@ namespace leking {
         VkExtent2D getExtent();
         bool wasWindowResized() { return frameBufferResized; }
         void resetWindowResizedFlag() { frameBufferResized = false; }
+        GLFWwindow* getGLFWwindow() const {return window;}
 
         void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
