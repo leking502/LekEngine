@@ -16,13 +16,13 @@
 
 namespace leking {
     struct SimplePushConstantData2D {
-        mat2 transform{1.f};
+        mat2 transform{1.0f};
         vec2 offset;
         alignas(16) vec3 color;
     };
     struct SimplePushConstantData {
-        glm::mat4 transform{1.f};
-        alignas(16) vec3 color;
+        glm::mat4 transform{1.0f};
+        glm::mat4 normalMatrix{1.0f};
     };
 
     SimpleRenderSystem::SimpleRenderSystem(LekDevice& device, VkRenderPass renderPass) : lekDevice(device){
@@ -69,30 +69,32 @@ namespace leking {
 
 
     void SimpleRenderSystem::renderGameObjects(
-            VkCommandBuffer commandBuffer,
-            std::vector<LekGameObject>& gameObjects,
-            const LekCamera& camera) {
+            FrameInfo& frameInfo,
+            std::vector<LekGameObject>& gameObjects) {
 
 
-        lekPipeline->bind(commandBuffer);
+        lekPipeline->bind(frameInfo.commandBuffer);
 
-        auto projectionView = camera.getProjection() * camera.getView();
+        auto projectionView = frameInfo.camera.getProjection() * frameInfo.camera.getView();
 
         //渲染游戏对象
         for(auto& obj: gameObjects) {
 
+            if(!obj.CanDraw()) continue;
+
             SimplePushConstantData push{};
-            push.color = obj.color;
+            auto modelMatrix = obj.transform.mat4();
             push.transform = projectionView * obj.transform.mat4();
+            push.normalMatrix = obj.transform.normalMatrix();
 
             vkCmdPushConstants(
-                    commandBuffer,
+                    frameInfo.commandBuffer,
                     pipelineLayout,
                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                     0, sizeof(SimplePushConstantData),
                     &push);
-            obj.model->bind(commandBuffer);
-            obj.model->draw(commandBuffer);
+            obj.model->bind(frameInfo.commandBuffer);
+            obj.model->draw(frameInfo.commandBuffer);
         }
     }
 } // leking

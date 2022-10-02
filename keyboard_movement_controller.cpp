@@ -2,6 +2,7 @@
 // Created by leking on 22-10-1.
 //
 
+#include <iostream>
 #include "keyboard_movement_controller.hpp"
 
 namespace leking {
@@ -12,8 +13,28 @@ namespace leking {
         if(glfwGetKey(window, keys.lookUp) == GLFW_PRESS) rotate.x += 1.0f;
         if(glfwGetKey(window, keys.lookDown) == GLFW_PRESS) rotate.x -= 1.0f;
 
+        if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS && !onDrop) {
+            glfwGetCursorPos(window, &cursorPos.x, &cursorPos.y);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            clickPos.x = cursorPos.x;
+            clickPos.y = cursorPos.y;
+            onDrop = true;
+        }
+        if(onDrop) {
+            CursorPos newCursorPos{};
+            glfwGetCursorPos(window, &newCursorPos.x, &newCursorPos.y);
+            glfwSetCursorPos(window, clickPos.x,clickPos.y);
+            rotate.x += lookSpeed * float(clickPos.y - newCursorPos.y ) * 0.0005f;
+            rotate.y -= lookSpeed * float(clickPos.x - newCursorPos.x ) * 0.0005f;
+            gameObject.transform.rotation+=rotate;
+        }
+        if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE && onDrop) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            onDrop = false;
+        }
+
         if (glm::dot(rotate,rotate) > std::numeric_limits<float>::epsilon()) {
-            gameObject.transform.rotation += lookSpeed * dt * glm::normalize(rotate);
+            //gameObject.transform.rotation += lookSpeed * dt * glm::normalize(rotate);
         }
 
         gameObject.transform.rotation.x = glm::clamp(gameObject.transform.rotation.x, -1.5f, 1.5f);

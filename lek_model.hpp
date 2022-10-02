@@ -6,11 +6,13 @@
 #define LEKENGINE_LEK_MODEL_HPP
 
 #include "lek_device.hpp"
+#include "lek_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "glm/glm.hpp"
 
+#include <memory>
 #include <vector>
 
 using namespace glm;
@@ -22,15 +24,24 @@ namespace leking {
     public:
 
         struct Vertex {
-            vec3 position;
-            vec3 color;
+            vec3 position{};
+            vec3 color{};
+            glm::vec3 normal{};
+            glm::vec2 uv{};
 
             static vector<VkVertexInputBindingDescription> getBindingDescriptions();
             static vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+
+            bool operator==(const Vertex &other) const {
+                return position == other.position
+                && color == other.color
+                && normal == other.normal
+                && uv == other.uv;
+            }
         };
         struct Vertex2D {
-            vec2 position;
-            vec3 color;
+            vec2 position{};
+            vec3 color{};
 
             static vector<VkVertexInputBindingDescription> getBindingDescriptions();
             static vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
@@ -39,6 +50,8 @@ namespace leking {
         struct Builder {
             std::vector<Vertex> vertices{};
             std::vector<uint32_t > indices{};
+
+            void loadModel(const std::string& filePath);
         };
 
         LekModel(LekDevice &device, const LekModel::Builder &builder);
@@ -46,6 +59,8 @@ namespace leking {
 
         LekModel(const LekModel &) = delete;
         LekModel &operator=(const LekModel &) = delete;
+
+        static std::unique_ptr<LekModel> createModelFromFile(LekDevice& device, const std::string& filePath);
 
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
@@ -56,14 +71,13 @@ namespace leking {
 
         LekDevice& lekDevice;
 
-        VkBuffer  vertexBuffer;
-        VkDeviceMemory vertexBufferMemory;
+        std::unique_ptr<LekBuffer> vertexBuffer;
         uint32_t vertexCount;
 
         bool hasIndexBuffer = false;
-        VkBuffer  indexBuffer;
-        VkDeviceMemory indexBufferMemory;
+        std::unique_ptr<LekBuffer> indexBuffer;
         uint32_t indexCount;
+
     };
 
 } // leking

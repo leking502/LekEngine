@@ -42,7 +42,7 @@ else()
 endif()
 
 
-add_executable(${VULKAN_PROJECT_NAME} main.cpp lek_window.hpp lek_window.cpp lek_app.cpp lek_app.hpp lek_pipeline.cpp lek_pipeline.hpp lek_device.cpp lek_device.hpp lek_swap_chain.cpp lek_swap_chain.hpp lek_model.cpp lek_model.hpp lek_game_object.cpp lek_game_object.hpp lek_renderer.cpp lek_renderer.hpp simple_render_system.cpp simple_render_system.hpp lek_camera.cpp lek_camera.hpp keyboard_movement_controller.cpp keyboard_movement_controller.hpp maze_game.cpp maze_game.hpp)
+add_executable(${VULKAN_PROJECT_NAME} main.cpp lek_window.hpp lek_window.cpp lek_app.cpp lek_app.hpp lek_pipeline.cpp lek_pipeline.hpp lek_device.cpp lek_device.hpp lek_swap_chain.cpp lek_swap_chain.hpp lek_model.cpp lek_model.hpp lek_game_object.cpp lek_game_object.hpp lek_renderer.cpp lek_renderer.hpp simple_render_system.cpp simple_render_system.hpp lek_camera.cpp lek_camera.hpp keyboard_movement_controller.cpp keyboard_movement_controller.hpp maze_game.cpp maze_game.hpp ModelLoder/tiny_obj_loader.h lek_utils.hpp lek_buffer.cpp lek_buffer.hpp lek_frame_info.cpp lek_frame_info.hpp)
 
 #file(GLOB_RECURSE GLSL_SOURCE_FILES
 #        "${PROJECT_SOURCE_DIR}/shaders/*.frag"

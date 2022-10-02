@@ -10,6 +10,10 @@
 
 namespace leking {
 
+    struct CursorPos {
+        double x;
+        double y;
+    };
     class KeyboardMovementController {
 
     public:
@@ -31,6 +35,11 @@ namespace leking {
         KeyMapping keys{};
         float moveSpeed{3.0f};
         float lookSpeed{1.5f};
+    private:
+
+        CursorPos clickPos{0};
+        CursorPos cursorPos{0};
+        bool onDrop{false};
     };
 
 } // leking

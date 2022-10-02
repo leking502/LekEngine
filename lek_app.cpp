@@ -3,6 +3,7 @@
 //
 
 #include "lek_app.hpp"
+#include "lek_buffer.hpp"
 
 #include "keyboard_movement_controller.hpp"
 #include "lek_camera.hpp"
@@ -19,10 +20,16 @@
 #include <chrono>
 #include <cassert>
 #include <stdexcept>
+#include <csignal>
 
 using namespace std;
 using namespace glm;
 namespace leking {
+
+    struct GlobalUbo {
+        glm::mat4 projectionView{1.f};
+        glm::vec3 lightDirection = glm::normalize(glm::vec3{1.f, -3.0f, -1.0f});
+    };
 
     LekApp::LekApp() {
         //loadGameObjects();
@@ -32,6 +39,18 @@ namespace leking {
     LekApp::~LekApp() {}
 
     void leking::LekApp::run() {
+
+        std::vector<std::unique_ptr<LekBuffer>> uboBuffers(LekSwapChain::MAX_FRAMES_IN_FLIGHT);
+        for(int i = 0; i< uboBuffers.size(); i++) {
+            uboBuffers[i] = std::make_unique<LekBuffer>(
+                lekDevice,
+                sizeof(GlobalUbo),
+                LekSwapChain::MAX_FRAMES_IN_FLIGHT,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+            uboBuffers[i]->map();
+        }
+
         SimpleRenderSystem simpleRenderSystem(lekDevice, lekRenderer.getSwapChainRenderPass());
         LekCamera camera{};
 
@@ -40,8 +59,17 @@ namespace leking {
 
         auto currentTime = std::chrono::high_resolution_clock::now();
 
-        MazeGameManager mazeGameManager = MazeGameManager(10,10);
-        mazeGameManager.CreateMaze(lekDevice,gameObjects);
+        MazeGameManager mazeGameManager = MazeGameManager(lekDevice, gameObjects,30,30);
+        mazeGameManager.CreateMaze();
+
+
+        shared_ptr<LekModel>  vaseModel = LekModel::createModelFromFile(lekDevice, "/home/leking/CLionProjects/LekEngine/models/oo.obj");
+        auto vase = LekGameObject::createGameObject();
+        vase.model = vaseModel;
+        vase.transform.translation = {0, -1.0f, 1};
+        vase.transform.rotation = {glm::pi<float>(),glm::half_pi<float>(),0};
+        vase.transform.scale = {0.1f, 0.1f, 0.1f};
+        gameObjects.push_back(std::move(vase));
 
         while(!lekWindow.shouldClose()) {
             glfwPollEvents();
@@ -52,78 +80,44 @@ namespace leking {
 
             frameTine = glm::min(frameTine,MAX_FRAME_TIME);
 
-            mazeGameManager.Update(lekDevice, lekWindow.getGLFWwindow(),gameObjects);
+            mazeGameManager.Update(lekWindow.getGLFWwindow());
 
             cameraController.moveInPlaneXZ(lekWindow.getGLFWwindow(), frameTine, viewerObject);
             camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
             float aspect = lekRenderer.getAspectRatio();
             //camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-            camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 100.0f);
+            camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 40000.0f);
 
             if(auto  commandBuffer = lekRenderer.beginFrame()) {
 
+                int frameIndex = lekRenderer.getFrameIndex();
+                FrameInfo frameInfo {
+                    frameIndex,
+                    frameTine,
+                    commandBuffer,
+                    camera
+                };
+                //更新
+                GlobalUbo ubo{};
+                ubo.projectionView = camera.getProjection() * camera.getView();
+                uboBuffers[frameIndex]->writeToBuffer(&ubo);
+                uboBuffers[frameIndex]->flush();
+
+                //渲染
                 lekRenderer.beginSwapChainRenderPass(commandBuffer);
-                simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
+                simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
                 lekRenderer.endSwapChainRenderPass(commandBuffer);
                 lekRenderer.endFrame();
             }
+            LekGameObject::GameObjectGC(gameObjects);
 
         }
         vkDeviceWaitIdle(lekDevice.device());
     }
 
-    std::unique_ptr<LekModel> createCubeModel(LekDevice& device, glm::vec3 offset) {
-        LekModel::Builder modelBuilder{};
-        modelBuilder.vertices = {
-                // left face (white)
-                {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-                {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-                {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-                {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-
-                // right face (yellow)
-                {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-                {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-                {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-                {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-
-                // top face (orange, remember y axis points down)
-                {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-                {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-                {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-                {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-
-                // bottom face (red)
-                {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-                {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-                {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-                {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-
-                // nose face (blue)
-                {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-                {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-                {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-                {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-
-                // tail face (green)
-                {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-                {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-                {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-                {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-        };
-        for (auto& v : modelBuilder.vertices) {
-            v.position += offset;
-        }
-
-        modelBuilder.indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-                                12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21};
-
-        return std::make_unique<LekModel>(device, modelBuilder);
-    }
-
     void LekApp::loadGameObjects() {
-        std::shared_ptr<LekModel> lekModel = createCubeModel(lekDevice, {0.0f, 0.0f, 0.0f});
+        std::shared_ptr<LekModel> lekModel = LekModel::createModelFromFile(lekDevice, "/home/leking/CLionProjects/LekEngine/models/colored_cube.obj");
 
         for(int i = 0;i<1;i++){
             auto cube = LekGameObject::createGameObject();
