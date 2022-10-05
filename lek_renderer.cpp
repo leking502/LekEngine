@@ -146,8 +146,8 @@ namespace leking {
     }
 
     void LekRenderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer) {
-        assert(isFrameStarted && "不可以在帧不在程序的时候调用结束交换链渲染通道");
-        assert(commandBuffer == getCurrentCommandBuffer() &&"结束渲染不可以在不同的帧上传递给命令缓冲区");
+        assert(isFrameStarted && "You cannot call the end exchange chain rendering channel when the frame is not in the program");
+        assert(commandBuffer == getCurrentCommandBuffer() &&"End rendering cannot be passed to the command buffer on different frames");
         vkCmdEndRenderPass(commandBuffer);
     }
 } // leking

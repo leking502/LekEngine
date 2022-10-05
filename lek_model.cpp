@@ -43,7 +43,7 @@ namespace leking {
 
     void LekModel::createVertexBuffers(const vector<Vertex> &vertices) {
         vertexCount = static_cast<uint32_t >(vertices.size());
-        assert(vertexCount >= 3 && "顶点点数量至少为3");
+        assert(vertexCount >= 3 && "The number of vertices shall be at least 3");
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
         uint32_t vertexSize = sizeof(vertices[0]);
 

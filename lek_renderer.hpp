@@ -30,12 +30,12 @@ namespace leking {
         bool isFrameInProgress() const {return  isFrameStarted;}
 
         VkCommandBuffer getCurrentCommandBuffer() const {
-            assert(isFrameStarted && "不能在帧不在程序内的时候获得命令缓冲区");
+            assert(isFrameStarted && "Cannot get command buffer when frame is not in program");
             return commandBuffers[currentFrameIndex];
         }
 
         int getFrameIndex() const {
-            assert(isFrameStarted && "不可以在帧不在程序的情况下获取帧索引");
+            assert(isFrameStarted && "The frame index cannot be obtained when the frame is not in the program");
             return currentFrameIndex;
         }
 

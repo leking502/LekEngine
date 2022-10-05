@@ -26,7 +26,7 @@ namespace leking {
         LekApp(const LekApp &) = delete;
         LekApp& operator=(const LekApp&) = delete;
 
-        void run();
+        void run(int mw, int mh);
 
     private:
         void loadGameObjects();

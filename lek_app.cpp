@@ -21,6 +21,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <csignal>
+#include <iostream>
 
 using namespace std;
 using namespace glm;
@@ -38,7 +39,7 @@ namespace leking {
 
     LekApp::~LekApp() {}
 
-    void leking::LekApp::run() {
+    void leking::LekApp::run(int mw, int mh) {
 
         std::vector<std::unique_ptr<LekBuffer>> uboBuffers(LekSwapChain::MAX_FRAMES_IN_FLIGHT);
         for(int i = 0; i< uboBuffers.size(); i++) {
@@ -59,30 +60,35 @@ namespace leking {
 
         auto currentTime = std::chrono::high_resolution_clock::now();
 
-        MazeGameManager mazeGameManager = MazeGameManager(lekDevice, gameObjects,30,30);
+
+
+        MazeGameManager mazeGameManager = MazeGameManager(lekDevice, gameObjects,mw,mh);
         mazeGameManager.CreateMaze();
 
+        viewerObject.transform.translation = { mw/2.f,-1.2*glm::max(mw,mh),(mh/2.f)-4.f };
+        viewerObject.transform.rotation = { -glm::half_pi<float>(),0.0f,0.0f};
 
-        shared_ptr<LekModel>  vaseModel = LekModel::createModelFromFile(lekDevice, "/home/leking/CLionProjects/LekEngine/models/oo.obj");
-        auto vase = LekGameObject::createGameObject();
-        vase.model = vaseModel;
-        vase.transform.translation = {0, -1.0f, 1};
-        vase.transform.rotation = {glm::pi<float>(),glm::half_pi<float>(),0};
-        vase.transform.scale = {0.1f, 0.1f, 0.1f};
-        gameObjects.push_back(std::move(vase));
+        //高达
+//        shared_ptr<LekModel>  vaseModel = LekModel::createModelFromFile(lekDevice, "models/oo.obj");
+//        auto vase = LekGameObject::createGameObject();
+//        vase.model = vaseModel;
+//        vase.transform.translation = {0, -1.0f, 1};
+//        vase.transform.rotation = {glm::pi<float>(),glm::half_pi<float>(),0};
+//        vase.transform.scale = {0.1f, 0.1f, 0.1f};
+//        gameObjects.push_back(std::move(vase));
 
         while(!lekWindow.shouldClose()) {
             glfwPollEvents();
 
             auto newTime = std::chrono::high_resolution_clock::now();
-            float frameTine = std::chrono::duration<float, std::chrono::seconds::period>(newTime-currentTime).count();
+            float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
 
-            frameTine = glm::min(frameTine,MAX_FRAME_TIME);
+            frameTime = glm::min(frameTime, MAX_FRAME_TIME);
 
-            mazeGameManager.Update(lekWindow.getGLFWwindow());
+            mazeGameManager.Update(lekWindow.getGLFWwindow(), frameTime);
 
-            cameraController.moveInPlaneXZ(lekWindow.getGLFWwindow(), frameTine, viewerObject);
+            cameraController.moveInPlaneXZ(lekWindow.getGLFWwindow(), frameTime, viewerObject);
             camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
             float aspect = lekRenderer.getAspectRatio();
@@ -93,10 +99,10 @@ namespace leking {
 
                 int frameIndex = lekRenderer.getFrameIndex();
                 FrameInfo frameInfo {
-                    frameIndex,
-                    frameTine,
-                    commandBuffer,
-                    camera
+                        frameIndex,
+                        frameTime,
+                        commandBuffer,
+                        camera
                 };
                 //更新
                 GlobalUbo ubo{};
@@ -117,7 +123,7 @@ namespace leking {
     }
 
     void LekApp::loadGameObjects() {
-        std::shared_ptr<LekModel> lekModel = LekModel::createModelFromFile(lekDevice, "/home/leking/CLionProjects/LekEngine/models/colored_cube.obj");
+        std::shared_ptr<LekModel> lekModel = LekModel::createModelFromFile(lekDevice, "models/colored_cube.obj");
 
         for(int i = 0;i<1;i++){
             auto cube = LekGameObject::createGameObject();

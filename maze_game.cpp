@@ -4,14 +4,19 @@
 
 #include <cstring>
 #include <iostream>
+#include <chrono>
 #include "maze_game.hpp"
 
 #define OPENNESS 3
 
 namespace leking {
     MazeGameManager::MazeGameManager(LekDevice& device, std::vector<LekGameObject>& gameObjects, int width, int height) : device(device), gameObjects(gameObjects), width(width), height(height){
-        wallModel = LekModel::createModelFromFile(device, "/home/leking/CLionProjects/LekEngine/models/colored_cube.obj");
-        roadModel = LekModel::createModelFromFile(device, "/home/leking/CLionProjects/LekEngine/models/cube.obj");
+        srand((unsigned)time(NULL));
+        if(width < 3 || height < 3) {
+            throw runtime_error("At least 3 in length or width");
+        }
+        wallModel = LekModel::createModelFromFile(device, "models/colored_cube.obj");
+        roadModel = LekModel::createModelFromFile(device, "models/cube.obj");
         GenerateMaze();
     }
 
@@ -49,42 +54,52 @@ namespace leking {
 
         for(int i = 0; i < width; i++) {
             for(int j = 0; j < height; j++) {
-                if(data[width*i+j] == 'x')
+                if(data[height*i+j] == 'x')
                 {
-                    auto wall = LekGameObject::createGameObject();
-                    wall.model = wallModel;
-                    wall.name = "wall("+ to_string(i) + to_string(j)+")";
-                    wall.transform.translation = {i*0.5f, 0.0f, j*0.5f};
-                    wall.transform.scale = {0.25f, 0.25f, 0.25f};
-                    gameObjects.push_back(std::move(wall));
+                    AddWall(i, j);
                 }
             }
         }
     }
     static float canSolveCount = 0;
     static float cantSolveCount = 0;
-    void MazeGameManager::Update(GLFWwindow *window) {
+    void MazeGameManager::Update(GLFWwindow *window, float dt) {
 //        if(!SolveMaze()){cantSolveCount+=1; }
 //        else canSolveCount+=1;
 //        mazeRouteStack = {};
 //        RefreshMaze();
 //        CreateMaze();
 
-        if(glfwGetKey(window, keys.resetMaze) == GLFW_PRESS && !onRefresh) {
+        if(glfwGetKey(window, keys.resetMaze) == GLFW_PRESS && !onRefresh && !autoMod) {
             onRefresh = true;
             RefreshMaze();
             CreateMaze();
             //std::cout<<gameObjects.size()<<endl;
         }
-        else if(glfwGetKey(window, keys.resetMaze) == GLFW_RELEASE && onRefresh) {
+        else if(glfwGetKey(window, keys.resetMaze) == GLFW_RELEASE && onRefresh && !autoMod) {
+            mazeRouteStack = {};
+            solvedSuccessfully = false;
+            startSolveMaze = false;
             onRefresh = false;
         }
-        if(glfwGetKey(window, keys.solveMaze) == GLFW_PRESS && !canSolveMaze) {
+        if(glfwGetKey(window, keys.autoSolveMaze) == GLFW_PRESS && !autoMod) {
+            autoMod = true;
+        }else if(glfwGetKey(window, keys.autoSolveMaze) == GLFW_RELEASE && autoMod) {
+            autoMod = false;
+        }
+        if(autoMod){
+            if(count>0.125f){
+                SolveMaze();
+                count = 0;
+                return;
+            }
+            count += dt;
+        }
+        if(glfwGetKey(window, keys.solveMaze) == GLFW_PRESS && !canSolveMaze && !autoMod) {
             canSolveMaze = true;
-            //std::cout<< canSolveCount<<"|"<<cantSolveCount<<"|"<<(float)canSolveCount/(cantSolveCount+canSolveCount)<<endl;
-            if(!SolveMaze()){ std::cout<<"迷宫无解"<<endl;}
-            mazeRouteStack = {};
-        }else if(glfwGetKey(window, keys.solveMaze) == GLFW_RELEASE && canSolveMaze) {
+            SolveMaze();
+        }
+        else if(glfwGetKey(window, keys.solveMaze) == GLFW_RELEASE && canSolveMaze && !autoMod) {
             canSolveMaze = false;
         }
     }
@@ -97,57 +112,100 @@ namespace leking {
     }
 
 
-
-    bool MazeGameManager::SolveMaze() {
-        if(mazeRouteStack.Size() == 0) {
+    void MazeGameManager::SolveMaze() {
+        if(solvedSuccessfully) return;
+        if(mazeRouteStack.Size() == 0 && !startSolveMaze) {
+            startSolveMaze = true;
+            if(data[height*0+1] == 'z') {
+                startSolveMaze = false;
+                std::cout<<"no solve"<<endl;
+                return;
+            }
             mazeRouteStack.Push({0,1});
+            AddWalkThrough(0,1);
+            data[height*0+1] = 'z';
+            return;
         }
+        switch(StepMaze()){
+            case 0:
+                mazeRouteStack.Pop();
+                PopWall();
+                break;
+            case 1:
+                break;
+            case 2:
+                solvedSuccessfully = true;
+                for(int i = 0;i<mazeRouteStack.Size();i++){
+                    gameObjects.pop_back();
+                }
+                while (mazeRouteStack.Size() != 0) {
+                    MazePos curr = mazeRouteStack.Pop();
+                    AddRoad(curr.x,curr.y);
+                }
+                return;
+        }
+        if(mazeRouteStack.Size() == 0 && startSolveMaze) {
+            mazeRouteStack = {};
+            startSolveMaze = false;
+            std::cout<<"no solve"<<endl;
+        }
+    }
+
+
+    int MazeGameManager::StepMaze() {
         MazePos curr = mazeRouteStack.Peek();
+        //终点
+        if(curr.x == width - 1 && curr.y == height - 2) {
+            return 2;
+        }
         //向左寻路
         if(data[ height * curr.x + curr.y+ 1 ] == 'o') {
             mazeRouteStack.Push({curr.x,curr.y+ 1});
             data[ height * (curr.x) + curr.y + 1 ] = 'z';
-            if(SolveMaze()){
-                AddRoad(curr.x, curr.y);
-                return true;
-            }
-            mazeRouteStack.Pop();
+            AddWalkThrough(curr.x,curr.y + 1);
+            return 1;
         }
         //向前寻路
         if(data[ height * (curr.x + 1) + curr.y ] == 'o') {
             mazeRouteStack.Push({curr.x + 1,curr.y});
             data[ height * (curr.x + 1) + curr.y ] = 'z';
-            if(SolveMaze()) {
-                AddRoad(curr.x, curr.y);
-                return true;
-            }
-            mazeRouteStack.Pop();
+            AddWalkThrough(curr.x + 1,curr.y);
+            return 1;
         }
         //向右寻路
         if(data[ height * curr.x + curr.y - 1 ] == 'o') {
             mazeRouteStack.Push({curr.x,curr.y - 1});
             data[ height * (curr.x) + curr.y - 1 ] = 'z';
-            if(SolveMaze()) {
-                AddRoad(curr.x, curr.y);
-                return true;
-            }
-            mazeRouteStack.Pop();
+            AddWalkThrough(curr.x,curr.y - 1);
+            return 1;
         }
-        //终点
-        if(curr.x == width - 1 && curr.y == height - 2) {
-            AddRoad(curr.x, curr.y);
-            return true;
+        //向后寻路
+        if(data[ height * (curr.x - 1) + curr.y ] == 'o') {
+            mazeRouteStack.Push({curr.x - 1,curr.y});
+            data[ height * (curr.x - 1) + curr.y  ] = 'z';
+            AddWalkThrough(curr.x - 1,curr.y);
+            return 1;
         }
-
-        AddWall(curr.x,curr.y);
-        return false;
+        return 0;
     }
 
     void MazeGameManager::AddWall(int x, int y) {
         auto wall = LekGameObject::createGameObject();
         wall.model = wallModel;
         wall.name = "wall("+ to_string(x) + to_string(y)+")";
-        wall.transform.translation = {x*0.5f, 0.0f, y*0.5f};
+        wall.transform.translation = {x, 0.0f, y};
+        wall.transform.scale = {0.5f, 0.5f, 0.5f};
+        gameObjects.push_back(std::move(wall));
+    }
+    void MazeGameManager::PopWall() {
+        gameObjects.pop_back();
+    }
+
+    void MazeGameManager::AddWalkThrough(int x, int y) {
+        auto wall = LekGameObject::createGameObject();
+        wall.model = wallModel;
+        wall.name = "wall("+ to_string(x) + to_string(y)+")";
+        wall.transform.translation = {x, 0.0f, y};
         wall.transform.scale = {0.25f, 0.25f, 0.25f};
         gameObjects.push_back(std::move(wall));
     }
@@ -156,7 +214,7 @@ namespace leking {
         auto wall = LekGameObject::createGameObject();
         wall.model = roadModel;
         wall.name = "road("+ to_string(x) + to_string(y)+")";
-        wall.transform.translation = {x*0.5f, 0.0f, y*0.5f};
+        wall.transform.translation = {x, 0.0f, y};
         wall.transform.scale = {0.25f, 0.25f, 0.25f};
         gameObjects.push_back(std::move(wall));
     }

@@ -32,7 +32,7 @@ namespace leking
         ifstream file{filePath, ios::ate | ios::binary};
 
         if(!file.is_open()) {
-            throw runtime_error("打开文件失败：" + filePath);
+            throw runtime_error("fail to open file：" + filePath);
         }
 
         size_t fileSize = static_cast<size_t>(file.tellg());
@@ -54,10 +54,10 @@ namespace leking
 
         assert(
                 configInfo.pipelineLayout != VK_NULL_HANDLE &&
-                "不能创建图形管线：configInfo里没有pipelineLayout");
+                "Cannot create graphical pipeline: there is no pipelineLayout in configInfo");
         assert(
                 configInfo.renderPass != VK_NULL_HANDLE &&
-                "不能创建图形管线：configInfo里没有renderPass");
+                "Cannot create graphical pipeline: there is no renderPass in configInfo");
 
         createShaderModule(vertCode, &vertShaderModule);
         createShaderModule(fragCode, &fragShaderModule);
@@ -121,7 +121,7 @@ namespace leking
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
         if(vkCreateGraphicsPipelines(lekDevice.device(), VK_NULL_HANDLE,1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-            throw runtime_error("创建图形管线失败");
+            throw runtime_error("Failed to create graphical pipeline");
         }
 
     }
@@ -133,7 +133,7 @@ namespace leking
         createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
         if(vkCreateShaderModule(lekDevice.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
-            throw runtime_error("创建着色器模型失败");
+            throw runtime_error("Failed to create shader model");
         }
     }
 

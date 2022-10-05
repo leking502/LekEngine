@@ -34,7 +34,7 @@ namespace leking{
 
     void LekWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {
         if(glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) {
-            throw runtime_error("创建窗体失败");
+            throw runtime_error("Window creation failed");
         }
     }
 

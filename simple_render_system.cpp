@@ -49,12 +49,12 @@ namespace leking {
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
         if(vkCreatePipelineLayout(lekDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-            throw runtime_error("创建管道层失败");
+            throw runtime_error("Failed to create pipeline layer");
         }
     }
 
     void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
-        assert(pipelineLayout != nullptr && "不能在创建管线层之前创建渲染管线");
+        assert(pipelineLayout != nullptr && "You cannot create a render pipeline before creating a pipeline layer");
 
         PipelineConfigInfo pipelineConfig{};
         LekPipeline::defaultPipelineConfigInfo(pipelineConfig);
@@ -62,8 +62,8 @@ namespace leking {
         pipelineConfig.pipelineLayout = pipelineLayout;
         lekPipeline = make_unique<LekPipeline>(
                 lekDevice,
-                "/home/leking/CLionProjects/LekEngine/shaders/simple_shader.vert.spv",
-                "/home/leking/CLionProjects/LekEngine/shaders/simple_shader.frag.spv",
+                "shaders/simple_shader.vert.spv",
+                "shaders/simple_shader.frag.spv",
                 pipelineConfig);
     }
 

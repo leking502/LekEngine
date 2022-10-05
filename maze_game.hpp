@@ -17,6 +17,7 @@ namespace leking {
     struct MazeKeyMapping {
         int resetMaze = GLFW_KEY_R;
         int solveMaze = GLFW_KEY_L;
+        int autoSolveMaze = GLFW_KEY_O;
     };
     struct MazeRouteStack {
         void Push(MazePos pos);
@@ -30,20 +31,23 @@ namespace leking {
     class MazeGameManager {
     public:
 
+
         MazeGameManager(LekDevice& device, std::vector<LekGameObject>& gameObjects, int width, int height);
 
         void CreateMaze();
 
         void RefreshMaze();
 
-        bool SolveMaze();
+        int StepMaze();
 
-        void Update(GLFWwindow *window);
+        void Update(GLFWwindow *window, float dt);
     private:
 
         void GenerateMaze();
 
         void AddWall(int x, int y);
+
+        void AddWalkThrough(int x, int y);
 
         void AddRoad(int x, int y);
 
@@ -60,6 +64,12 @@ namespace leking {
 
         bool canSolveMaze{false};
 
+        bool startSolveMaze{false};
+
+        bool solvedSuccessfully{false};
+
+        bool autoMod{false};
+
         bool onRefresh{false};
         char* data;
         const int width;
@@ -67,7 +77,11 @@ namespace leking {
 
         MazeKeyMapping keys{};
 
-        bool isContinue;
+        float count{0};
+
+        void PopWall();
+
+        void SolveMaze();
     };
 
 } // leking
