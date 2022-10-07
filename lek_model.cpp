@@ -32,6 +32,10 @@ namespace leking {
         createVertexBuffers(builder.vertices);
         createIndexBuffers(builder.indices);
     }
+    LekModel::LekModel(LekDevice &device, const LekModel::Builder2D &builder) : lekDevice(device){
+        createVertex2DBuffers(builder.vertices);
+        createIndexBuffers(builder.indices);
+    }
 
     LekModel::~LekModel() {}
 
@@ -53,6 +57,32 @@ namespace leking {
             vertexCount,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        };
+
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void*)vertices.data());
+
+        vertexBuffer = std::make_unique<LekBuffer>(
+                lekDevice,
+                vertexSize,
+                vertexCount,
+                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+        lekDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
+    }
+    void LekModel::createVertex2DBuffers(const vector<Vertex2D> &vertices) {
+        vertexCount = static_cast<uint32_t >(vertices.size());
+        assert(vertexCount >= 3 && "The number of vertices shall be at least 3");
+        VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
+        uint32_t vertexSize = sizeof(vertices[0]);
+
+        LekBuffer stagingBuffer {
+                lekDevice,
+                vertexSize,
+                vertexCount,
+                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         };
 
         stagingBuffer.map();
@@ -149,6 +179,32 @@ namespace leking {
             0,
             VK_FORMAT_R32G32_SFLOAT,
             offsetof(Vertex,uv)});
+
+
+        return attributeDescriptions;
+    }
+
+    vector<VkVertexInputBindingDescription> LekModel::Vertex2D::getBindingDescriptions() {
+        vector<VkVertexInputBindingDescription> bindingDescriptions(1);
+        bindingDescriptions[0].binding = 0;
+        bindingDescriptions[0].stride =sizeof (Vertex2D);
+        bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        return bindingDescriptions;
+    }
+
+    vector<VkVertexInputAttributeDescription> LekModel::Vertex2D::getAttributeDescriptions() {
+        vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+
+        attributeDescriptions.push_back({
+                                                0,
+                                                0,
+                                                VK_FORMAT_R32G32_SFLOAT,
+                                                offsetof(Vertex2D,position)});
+        attributeDescriptions.push_back({
+                                                1,
+                                                0,
+                                                VK_FORMAT_R32G32B32_SFLOAT,
+                                                offsetof(Vertex2D,color)});
 
 
         return attributeDescriptions;

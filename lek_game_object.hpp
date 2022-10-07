@@ -15,7 +15,7 @@
 
 namespace leking {
 
-    struct  Transform2dComponent {
+    struct  TransformComponent2D {
         glm::vec2 translation{};
         glm::vec2 scale{1.0f, 1.0f};
         float  rotation;
@@ -29,29 +29,31 @@ namespace leking {
             return rotMatrix * scaleMat;
         }
     };
-    class Lek2dGameObject {
+    class LekGameObject2D {
     public:
         using id_t = unsigned int;
         int test{0};
 
-        static Lek2dGameObject createGameObject() {
+        static LekGameObject2D createGameObject() {
             static  id_t currentId = 0;
-            return  Lek2dGameObject{currentId++};
+            return  LekGameObject2D{currentId++};
         }
 
-        Lek2dGameObject(const Lek2dGameObject &) = delete;
-        Lek2dGameObject& operator=(const Lek2dGameObject&) = delete;
-        Lek2dGameObject(Lek2dGameObject&&) = default;
-        Lek2dGameObject& operator=(Lek2dGameObject&&) = default;
+        LekGameObject2D(const LekGameObject2D &) = delete;
+        LekGameObject2D& operator=(const LekGameObject2D&) = delete;
+        LekGameObject2D(LekGameObject2D&&) = default;
+        LekGameObject2D& operator=(LekGameObject2D&&) = default;
 
         id_t getId() {return id;}
+        bool CanDraw(){return canDraw;}
 
         std::shared_ptr<LekModel> model{};
         glm::vec3 color{};
-        Transform2dComponent transform2d{};
+        TransformComponent2D transform2d{};
 
     private:
-        Lek2dGameObject(id_t objId) : id{objId} {}
+        bool canDraw{true};
+        LekGameObject2D(id_t objId) : id{objId} {}
 
         id_t id;
     };

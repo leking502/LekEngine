@@ -29,10 +29,15 @@ struct PipelineConfigInfo {
     uint32_t subpass = 0;
 };
 namespace leking {
+    enum PipeLineType{
+        is_2d,
+        is_3d
+    };
     class LekPipeline {
     public:
         LekPipeline(
                 LekDevice& device,
+                PipeLineType type,
                 const string &vertFilePath,
                 const string &fragFilePath,
                 const PipelineConfigInfo& configInfo);
@@ -48,7 +53,8 @@ namespace leking {
     private:
         static vector<char> readFile(const string& filePath);
 
-        void createGraphicsPipeline(const string& vertFilePath,
+        void createGraphicsPipeline(PipeLineType type,
+                                    const string& vertFilePath,
                                     const string& fragFilePath,
                                     const PipelineConfigInfo& configInfo);
 

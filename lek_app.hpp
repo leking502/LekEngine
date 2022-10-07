@@ -9,6 +9,7 @@
 #include "lek_game_object.hpp"
 #include "lek_device.hpp"
 #include "lek_renderer.hpp"
+#include "lek_descriptors.hpp"
 
 #include <memory>
 #include <vector>
@@ -35,7 +36,9 @@ namespace leking {
         LekDevice lekDevice{lekWindow};
         LekRenderer lekRenderer{lekDevice,lekWindow};
 
+        std::unique_ptr<LekDescriptorPool> globalPool{};
         std::vector<LekGameObject> gameObjects;
+        std::vector<LekGameObject2D> gameObjects2D;
     };
 }
 

@@ -21,12 +21,14 @@ namespace leking {
         alignas(16) vec3 color;
     };
     struct SimplePushConstantData {
-        glm::mat4 transform{1.0f};
+        glm::mat4 modelMatrix{1.0f};
         glm::mat4 normalMatrix{1.0f};
     };
 
-    SimpleRenderSystem::SimpleRenderSystem(LekDevice& device, VkRenderPass renderPass) : lekDevice(device){
-        createPipelineLayout();
+    SimpleRenderSystem::SimpleRenderSystem(
+            LekDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
+            : lekDevice(device){
+        createPipelineLayout(globalSetLayout);
         createPipeline(renderPass);
     }
 
@@ -35,17 +37,19 @@ namespace leking {
         vkDestroyPipelineLayout(lekDevice.device(), pipelineLayout, nullptr);
     }
 
-    void SimpleRenderSystem::createPipelineLayout() {
+    void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
 
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(SimplePushConstantData);
 
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 0;
-        pipelineLayoutInfo.pSetLayouts = nullptr;
+        pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+        pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
         if(vkCreatePipelineLayout(lekDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
@@ -62,6 +66,7 @@ namespace leking {
         pipelineConfig.pipelineLayout = pipelineLayout;
         lekPipeline = make_unique<LekPipeline>(
                 lekDevice,
+                PipeLineType::is_3d,
                 "shaders/simple_shader.vert.spv",
                 "shaders/simple_shader.frag.spv",
                 pipelineConfig);
@@ -71,11 +76,17 @@ namespace leking {
     void SimpleRenderSystem::renderGameObjects(
             FrameInfo& frameInfo,
             std::vector<LekGameObject>& gameObjects) {
-
-
         lekPipeline->bind(frameInfo.commandBuffer);
 
-        auto projectionView = frameInfo.camera.getProjection() * frameInfo.camera.getView();
+        vkCmdBindDescriptorSets(
+                frameInfo.commandBuffer,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                pipelineLayout,
+                0,
+                1,
+                &frameInfo.globalDescriptorSet,
+                0,
+                nullptr);
 
         //渲染游戏对象
         for(auto& obj: gameObjects) {
@@ -83,8 +94,7 @@ namespace leking {
             if(!obj.CanDraw()) continue;
 
             SimplePushConstantData push{};
-            auto modelMatrix = obj.transform.mat4();
-            push.transform = projectionView * obj.transform.mat4();
+            push.modelMatrix = obj.transform.mat4();
             push.normalMatrix = obj.transform.normalMatrix();
 
             vkCmdPushConstants(

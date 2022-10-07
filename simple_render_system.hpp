@@ -10,6 +10,7 @@
 #include "lek_game_object.hpp"
 #include "lek_device.hpp"
 #include "lek_frame_info.hpp"
+#include "lek_descriptors.hpp"
 
 #include <memory>
 #include <vector>
@@ -19,7 +20,7 @@ namespace leking {
     class SimpleRenderSystem {
     public:
 
-        SimpleRenderSystem(LekDevice& device, VkRenderPass renderPass);
+        SimpleRenderSystem(LekDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
         ~SimpleRenderSystem();
 
         SimpleRenderSystem(const SimpleRenderSystem &) = delete;
@@ -30,7 +31,7 @@ namespace leking {
                 std::vector<LekGameObject>& gameObjects);
 
     private:
-        void createPipelineLayout();
+        void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);
 
         LekDevice& lekDevice;

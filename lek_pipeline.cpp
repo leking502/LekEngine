@@ -15,11 +15,12 @@ namespace leking
 
     LekPipeline::LekPipeline(
             LekDevice& device,
+            PipeLineType type,
             const string &vertFilePath,
             const string &fragFilePath,
             const PipelineConfigInfo& configInfo)
         : lekDevice(device){
-        createGraphicsPipeline(vertFilePath,fragFilePath,configInfo);
+        createGraphicsPipeline(type,vertFilePath,fragFilePath,configInfo);
     }
 
     LekPipeline::~LekPipeline() {
@@ -46,6 +47,7 @@ namespace leking
     }
 
     void LekPipeline::createGraphicsPipeline(
+            PipeLineType type,
             const string &vertFilePath,
             const string &fragFilePath,
             const PipelineConfigInfo& configInfo) {
@@ -79,14 +81,20 @@ namespace leking
         shaderStages[1].pNext = nullptr;
         shaderStages[1].pSpecializationInfo = nullptr;
 
-        auto bindingDescriptions = LekModel::Vertex::getBindingDescriptions();
-        auto attributeDescriptions = LekModel::Vertex::getAttributeDescriptions();
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+        auto bindingDescriptions = LekModel::Vertex::getBindingDescriptions();
+        auto attributeDescriptions = LekModel::Vertex::getAttributeDescriptions();
+        if(type == PipeLineType::is_2d) {
+            bindingDescriptions = LekModel::Vertex2D::getBindingDescriptions();
+            attributeDescriptions = LekModel::Vertex2D::getAttributeDescriptions();
+        }
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
         vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
         vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+
 
         VkPipelineColorBlendStateCreateInfo colorBlendInfo{};
 

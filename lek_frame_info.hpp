@@ -16,6 +16,7 @@ namespace leking {
         float frameTime;
         VkCommandBuffer commandBuffer;
         LekCamera& camera;
+        VkDescriptorSet globalDescriptorSet;
     };
 
 } // leking

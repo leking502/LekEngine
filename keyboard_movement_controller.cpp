@@ -34,7 +34,7 @@ namespace leking {
         }
 
         if (glm::dot(rotate,rotate) > std::numeric_limits<float>::epsilon()) {
-            //gameObject.transform.rotation += lookSpeed * dt * glm::normalize(rotate);
+            //gameObject.modelMatrix.rotation += lookSpeed * dt * glm::normalize(rotate);
         }
 
         gameObject.transform.rotation.x = glm::clamp(gameObject.transform.rotation.x, -1.5f, 1.5f);

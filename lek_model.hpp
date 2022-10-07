@@ -53,8 +53,13 @@ namespace leking {
 
             void loadModel(const std::string& filePath);
         };
+        struct Builder2D {
+            std::vector<Vertex2D> vertices{};
+            std::vector<uint32_t > indices{};
+        };
 
         LekModel(LekDevice &device, const LekModel::Builder &builder);
+        LekModel(LekDevice &device, const LekModel::Builder2D &builder);
         ~LekModel();
 
         LekModel(const LekModel &) = delete;
@@ -66,6 +71,7 @@ namespace leking {
         void draw(VkCommandBuffer commandBuffer);
 
     private:
+        void createVertex2DBuffers(const vector<Vertex2D> &vertices);
         void createVertexBuffers(const vector<Vertex> &vertices);
         void createIndexBuffers(const vector<uint32_t> &indices);
 
